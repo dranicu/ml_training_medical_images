@@ -1,0 +1,6 @@
+oci
+numpy==1.26.4
+pillow
+imgaug
+requests
+tensorflow
