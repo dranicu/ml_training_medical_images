@@ -20,6 +20,39 @@ PREFIX = "model/"
 
 # Functions
 
+def download_images(namespace, prefix, bucket_name, download_dir):
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
+    
+    # Ensure download directory exists
+    os.makedirs(f"{download_dir}/class1", exist_ok=True)
+    os.makedirs(f"{download_dir}/class2", exist_ok=True)
+
+    # List objects in the bucket
+    objects = object_client.list_objects(
+        namespace,
+        bucket_name,
+        prefix=prefix,
+    )
+    count = 0
+    for obj in objects.data.objects:
+        file_name = obj.name.split("/")[-1]
+        
+        if file_name.lower().endswith(('.jpg', '.png')):  # Filter jpg/png files
+            if float(count) < len(objects.data.objects)/2:
+                file_path = os.path.join(f"{download_dir}/class1", file_name)
+            else:
+                file_path = os.path.join(f"{download_dir}/class2", file_name)
+            print(f"Downloading {file_name}...")
+            # Get object data
+            get_obj_response = object_client.get_object(namespace, bucket_name, obj.name)
+            # Save the file locally
+            with open(file_path, 'wb') as file:
+                file.write(get_obj_response.data.content)
+            print(f"Downloaded: {file_path}")
+        count += 1
+        
+
 def prepare_data(train_dir, validation_dir):
     """Prepares data generators for training and validation."""
     train_datagen = ImageDataGenerator(rescale=1.0 / 255)
@@ -83,6 +116,16 @@ def train_model(model, train_generator, validation_generator, save_path, epochs)
 
 def main():
     """Main function to orchestrate training."""
+    namespace = NAMESPACE
+    prefix_download_train = "non-cancer-processed/train"
+    prefix_download_validation = "non-cancer-processed/validation"
+    bucket_name = BUCKET_NAME
+    download_dir_train = f"{DATA_DIR}/train"
+    download_dir_validation = f"{DATA_DIR}/validation"
+
+    download_images(namespace, prefix_download_train, bucket_name, download_dir_train)
+    download_images(namespace, prefix_download_validation, bucket_name, download_dir_validation)
+
     # Verify directory structure
     if not os.path.exists(TRAIN_DIR) or not os.path.exists(VALIDATION_DIR):
         print("Error: Training or validation directory does not exist.")

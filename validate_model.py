@@ -1,4 +1,5 @@
 import os
+import oci
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
@@ -8,6 +9,38 @@ IMG_WIDTH = 150   # Same as used during training
 BATCH_SIZE = 1
 MODEL_PATH = "./model/model.keras"  # Path to the saved model
 DATA_DIR = "./data/validation"  # Validation directory
+
+def download_images(namespace, prefix, bucket_name, download_dir):
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
+    
+    # Ensure download directory exists
+    os.makedirs(f"{download_dir}/class1", exist_ok=True)
+    os.makedirs(f"{download_dir}/class2", exist_ok=True)
+
+    # List objects in the bucket
+    objects = object_client.list_objects(
+        namespace,
+        bucket_name,
+        prefix=prefix,
+    )
+    count = 0
+    for obj in objects.data.objects:
+        file_name = obj.name.split("/")[-1]
+        
+        if file_name.lower().endswith(('.jpg', '.png')):  # Filter jpg/png files
+            if float(count) < len(objects.data.objects)/2:
+                file_path = os.path.join(f"{download_dir}/class1", file_name)
+            else:
+                file_path = os.path.join(f"{download_dir}/class2", file_name)
+            print(f"Downloading {file_name}...")
+            # Get object data
+            get_obj_response = object_client.get_object(namespace, bucket_name, obj.name)
+            # Save the file locally
+            with open(file_path, 'wb') as file:
+                file.write(get_obj_response.data.content)
+            print(f"Downloaded: {file_path}")
+        count += 1
 
 def validate_model(data_dir, model_path):
     """Validates a trained model on the test/validation dataset."""
@@ -29,6 +62,11 @@ def validate_model(data_dir, model_path):
     print(f"Validation Results - Loss: {results[0]}, Accuracy: {results[1]}")
 
 if __name__ == "__main__":
+    namespace = "ocisateam"
+    prefix = "non-cancer-processed/validation"
+    bucket_name = "medical-image-bucket"
+    download_dir = DATA_DIR
+    download_images(namespace, prefix, bucket_name, download_dir)
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at {MODEL_PATH}")
     elif not os.path.exists(DATA_DIR):

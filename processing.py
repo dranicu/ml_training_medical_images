@@ -21,10 +21,10 @@ seq = iaa.Sequential([
 def download_images(namespace, prefix, bucket_name, download_dir):
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
-    
+
     # Ensure download directory exists
     os.makedirs(download_dir, exist_ok=True)
-    
+
     # List objects in the bucket
     objects = object_client.list_objects(
         namespace,
@@ -49,11 +49,19 @@ def download_images(namespace, prefix, bucket_name, download_dir):
 def upload_images(namespace, prefix, bucket_name, upload_dir):
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
+    nr_of_images = len([file for file in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, file))])
+    count = 0
     for root, _, files in os.walk(upload_dir):
         for file_name in files:
+            if float(count) < nr_of_images/2:
+                object_name = os.path.join(f"{prefix}train", file_name).replace("\\", "/")
+            else:
+                object_name = os.path.join(f"{prefix}validation", file_name).replace("\\", "/")
+
+            count += 1
+
             file_path = os.path.join(root, file_name)
-            object_name = os.path.join(prefix, file_name).replace("\\", "/")  # Ensure correct path formatting for OCI
-            
+                                   
             print(f"Uploading {file_path} to {object_name} in bucket {bucket_name}...")
 
             with open(file_path, "rb") as file_data:
@@ -68,15 +76,7 @@ def upload_images(namespace, prefix, bucket_name, upload_dir):
 
 # Function to apply augmentations to images
 def augment_images(input_dir, output_dir):
-    nr_of_images = len([file for file in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, file))])
-    output_dirs_train = [f"{output_dir}/train/class1", f"{output_dir}/train/class2"]
-    output_dirs_validation = [f"{output_dir}/validation/class1", f"{output_dir}/validation/class2"]
-    for dir in output_dirs_train:
-        os.makedirs(dir, exist_ok=True)
-    for dir in output_dirs_validation:
-        os.makedirs(dir, exist_ok=True)
-        
-    count = 0
+    os.makedirs(output_dir, exist_ok=True)
     for image_file in os.listdir(input_dir):
         if image_file.endswith(".jpg") or image_file.endswith(".png"):
             image_path = os.path.join(input_dir, image_file)
@@ -84,19 +84,7 @@ def augment_images(input_dir, output_dir):
             image_np = np.array(image)
             augmented_image_np = seq(image=image_np)  # Apply augmentations
             augmented_image = Image.fromarray(augmented_image_np)
-            if count < nr_of_images / 4:
-                augmented_image.save(os.path.join(output_dirs_train[0], f"aug_{image_file}"))
-                count += 1
-            elif nr_of_images / 4 < count <  nr_of_images / 2:
-                augmented_image.save(os.path.join(output_dirs_train[1], f"aug_{image_file}"))
-                count += 1
-            elif nr_of_images / 2 < count <  nr_of_images / 0.75:
-                augmented_image.save(os.path.join(output_dirs_validation[0], f"aug_{image_file}"))
-                count += 1
-            else:
-                augmented_image.save(os.path.join(output_dirs_validation[1], f"aug_{image_file}"))
-                count += 1
-            
+            augmented_image.save(os.path.join(output_dir, f"aug_{image_file}"))
 
 # Main execution
 if __name__ == "__main__":
@@ -105,7 +93,7 @@ if __name__ == "__main__":
     prefix_up = "non-cancer-processed/"
     bucket_name = "medical-image-bucket"
     download_dir = "./input_images"
-    output_dir = "./data"
+    output_dir = "./augmented_images"
     
     # Step 1: Download images from OCI Object Storage
     print("Downloading images...")
