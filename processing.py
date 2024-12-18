@@ -18,7 +18,7 @@ seq = iaa.Sequential([
 ])
 
 # Function to download images from OCI Object Storage using a PAR URL
-def download_images(namespace, prefix, bucket_name, download_dir):
+def download_images(namespace, bucket_name, download_dir):
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
 
@@ -29,7 +29,6 @@ def download_images(namespace, prefix, bucket_name, download_dir):
     objects = object_client.list_objects(
         namespace,
         bucket_name,
-        prefix=prefix,
     )
 
     for obj in objects.data.objects:
@@ -46,7 +45,7 @@ def download_images(namespace, prefix, bucket_name, download_dir):
     
 
 # Function to upload processed images back to OCI Object Storage
-def upload_images(namespace, prefix, bucket_name, upload_dir):
+def upload_images(namespace, bucket_name, upload_dir):
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
     nr_of_images = len([file for file in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, file))])
@@ -54,9 +53,9 @@ def upload_images(namespace, prefix, bucket_name, upload_dir):
     for root, _, files in os.walk(upload_dir):
         for file_name in files:
             if float(count) < nr_of_images/2:
-                object_name = os.path.join(f"{prefix}train", file_name).replace("\\", "/")
+                object_name = os.path.join("train", file_name).replace("\\", "/")
             else:
-                object_name = os.path.join(f"{prefix}validation", file_name).replace("\\", "/")
+                object_name = os.path.join("validation", file_name).replace("\\", "/")
 
             count += 1
 
@@ -88,16 +87,15 @@ def augment_images(input_dir, output_dir):
 
 # Main execution
 if __name__ == "__main__":
-    namespace = "ocisateam"
-    prefix_down = "non-cancer/"
-    prefix_up = "non-cancer-processed/"
-    bucket_name = "medical-image-bucket"
+    namespace = "<NAMESPACE>" # SET THE NAMESPACE
+    bucket_name_up = "medical-images-processed"
+    bucket_name_down = "medical-images-raw"
     download_dir = "./input_images"
     output_dir = "./augmented_images"
     
     # Step 1: Download images from OCI Object Storage
     print("Downloading images...")
-    download_images(namespace, prefix_down, bucket_name, download_dir)
+    download_images(namespace, bucket_name_down, download_dir)
     
     # Step 2: Apply augmentations
     print("Applying augmentations...")
@@ -105,6 +103,6 @@ if __name__ == "__main__":
     
     # Step 3: Upload augmented images back to OCI Object Storage
     print("Uploading augmented images...")
-    upload_images(namespace, prefix_up, bucket_name, output_dir)
+    upload_images(namespace, bucket_name_up, output_dir)
     
     print("Image augmentation and upload completed.")

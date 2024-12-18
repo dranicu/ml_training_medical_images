@@ -1,5 +1,6 @@
 import os
 import oci
+import sys
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
@@ -7,7 +8,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 IMG_HEIGHT = 150  # Same as used during training
 IMG_WIDTH = 150   # Same as used during training
 BATCH_SIZE = 1
-MODEL_PATH = "./model/model.keras"  # Path to the saved model
+MODEL_PATH = "./model"  # Path to the saved model
 DATA_DIR = "./data/validation"  # Validation directory
 
 def download_images(namespace, prefix, bucket_name, download_dir):
@@ -42,6 +43,18 @@ def download_images(namespace, prefix, bucket_name, download_dir):
             print(f"Downloaded: {file_path}")
         count += 1
 
+def download_model(download_dir, bucket_name, model_name):
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
+
+    os.makedirs(f"{download_dir}", exist_ok=True)
+    get_obj_response = object_client.get_object(namespace, bucket_name, model_name)
+    model_path = os.path.join(f"{download_dir}", model_name)
+
+    with open(download_dir, 'wb') as file:
+        file.write(get_obj_response.data.content)
+        print(f"Downloaded: {model_path}")
+
 def validate_model(data_dir, model_path):
     """Validates a trained model on the test/validation dataset."""
     # Load the model
@@ -62,11 +75,14 @@ def validate_model(data_dir, model_path):
     print(f"Validation Results - Loss: {results[0]}, Accuracy: {results[1]}")
 
 if __name__ == "__main__":
-    namespace = "ocisateam"
-    prefix = "non-cancer-processed/validation"
-    bucket_name = "medical-image-bucket"
+    namespace = "<NAMESPACE>" # SET THE NAMESPACE
+    prefix = "validation"
+    bucket_name_images = "medical-images-processed"
+    bucket_name_model = "trained-model"
+
     download_dir = DATA_DIR
-    download_images(namespace, prefix, bucket_name, download_dir)
+    download_model(MODEL_PATH, bucket_name_model, "model.keras")
+    download_images(namespace, prefix, bucket_name_images, download_dir)
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at {MODEL_PATH}")
     elif not os.path.exists(DATA_DIR):

@@ -19,18 +19,18 @@ spec:
 
   - name: process-image-step
     container:
-      image: fra.ocir.io/ocisateam/processing:v2
+      image: fra.ocir.io/<NAMESPACE>/processing:v2 # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
       command: ["python3.10", "/app/processing.py"]
       args: []
 
   - name: train-model-step
     container:
-      image: fra.ocir.io/ocisateam/train:v2
+      image: fra.ocir.io/<NAMESPACE>/train:v2 # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
       command: ["python3.10", "/app/train_model.py"]
       args: []
   
   - name: validate-model-step
     container:
-      image: fra.ocir.io/ocisateam/validate:v2
+      image: fra.ocir.io/<NAMESPACE>/validate:v2 # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
       command: ["python3.10", "/app/validate_model.py"]
       args: []

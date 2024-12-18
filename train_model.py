@@ -14,13 +14,13 @@ MODEL_SAVE_PATH = "./model/model.keras"
 DATA_DIR = "./data"
 TRAIN_DIR = os.path.join(DATA_DIR, "train")
 VALIDATION_DIR = os.path.join(DATA_DIR, "validation")
-NAMESPACE = "ocisateam"
-BUCKET_NAME = "medical-image-bucket"
-PREFIX = "model/"
+NAMESPACE = "<NAMESPACE>" # SET THE NAMESPACE
+BUCKET_NAME = "medical_images_processed"
+BUCKET_NAME_MODEL = "trained-model"
 
 # Functions
 
-def download_images(namespace, prefix, bucket_name, download_dir):
+def download_images(namespace, bucket_name, download_dir):
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
     
@@ -32,7 +32,6 @@ def download_images(namespace, prefix, bucket_name, download_dir):
     objects = object_client.list_objects(
         namespace,
         bucket_name,
-        prefix=prefix,
     )
     count = 0
     for obj in objects.data.objects:
@@ -116,15 +115,11 @@ def train_model(model, train_generator, validation_generator, save_path, epochs)
 
 def main():
     """Main function to orchestrate training."""
-    namespace = NAMESPACE
-    prefix_download_train = "non-cancer-processed/train"
-    prefix_download_validation = "non-cancer-processed/validation"
-    bucket_name = BUCKET_NAME
     download_dir_train = f"{DATA_DIR}/train"
     download_dir_validation = f"{DATA_DIR}/validation"
 
-    download_images(namespace, prefix_download_train, bucket_name, download_dir_train)
-    download_images(namespace, prefix_download_validation, bucket_name, download_dir_validation)
+    download_images(NAMESPACE, BUCKET_NAME, download_dir_train)
+    download_images(NAMESPACE, BUCKET_NAME, download_dir_validation)
 
     # Verify directory structure
     if not os.path.exists(TRAIN_DIR) or not os.path.exists(VALIDATION_DIR):
@@ -144,11 +139,11 @@ def main():
     # Upload to OCI Object Storage
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
-    object_name = os.path.join(PREFIX, "model.keras").replace("\\", "/")
+    object_name = "model.keras"
     with open(MODEL_SAVE_PATH, "rb") as file_data:
         object_client.put_object(
                         NAMESPACE,
-                        BUCKET_NAME,
+                        BUCKET_NAME_MODEL,
                         object_name,
                         file_data
                     )
