@@ -6,6 +6,7 @@ from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Dropou
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 # Parameters
+NAMESPACE = "<NAMESPACE>" # SET THE NAMESPACE
 IMG_HEIGHT = 150
 IMG_WIDTH = 150
 BATCH_SIZE = 32
@@ -14,7 +15,6 @@ MODEL_SAVE_PATH = "./model/model.keras"
 DATA_DIR = "./data"
 TRAIN_DIR = os.path.join(DATA_DIR, "train")
 VALIDATION_DIR = os.path.join(DATA_DIR, "validation")
-NAMESPACE = "<NAMESPACE>" # SET THE NAMESPACE
 BUCKET_NAME = "medical_images_processed"
 BUCKET_NAME_MODEL = "trained-model"
 

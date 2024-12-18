@@ -4,6 +4,8 @@ import numpy as np
 import imgaug.augmenters as iaa
 from PIL import Image
 
+namespace = "<NAMESPACE>" # SET THE NAMESPACE
+
 # Set up augmentation parameters
 seq = iaa.Sequential([
     iaa.Fliplr(1),  # horizontal flips
@@ -87,7 +89,6 @@ def augment_images(input_dir, output_dir):
 
 # Main execution
 if __name__ == "__main__":
-    namespace = "<NAMESPACE>" # SET THE NAMESPACE
     bucket_name_up = "medical-images-processed"
     bucket_name_down = "medical-images-raw"
     download_dir = "./input_images"

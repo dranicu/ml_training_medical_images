@@ -5,6 +5,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # Parameters
+namespace = "<NAMESPACE>" # SET THE NAMESPACE
 IMG_HEIGHT = 150  # Same as used during training
 IMG_WIDTH = 150   # Same as used during training
 BATCH_SIZE = 1
@@ -75,7 +76,6 @@ def validate_model(data_dir, model_path):
     print(f"Validation Results - Loss: {results[0]}, Accuracy: {results[1]}")
 
 if __name__ == "__main__":
-    namespace = "<NAMESPACE>" # SET THE NAMESPACE
     prefix = "validation"
     bucket_name_images = "medical-images-processed"
     bucket_name_model = "trained-model"

@@ -1,10 +1,6 @@
 # Base image with Python 3.10
 FROM python:3.10-slim
 
-ARG NAMESPACE
-
-ENV env_name=$NAMESPACE
-
 # Set a working directory in the container
 WORKDIR /app
 
