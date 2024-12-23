@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  generateName: webhook-triggered-ml
+spec:
+  entrypoint: ml-pipeline
+  templates:
+  - name: ml-pipeline
+    dag:
+      tasks:
+      - name: process-image
+        template: process-image-step
+      - name: train-model
+        depends: "process-image"
+        template: train-model-step
+      - name: validate-model
+        depends: "train-model"
+        template: validate-model-step
+
+  - name: process-image-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/processing:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/processing.py"]
+      args: []
+
+  - name: train-model-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/train:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/train_model.py"]
+      args: []
+  
+  - name: validate-model-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/validate:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/validate_model.py"]
+      args: []
