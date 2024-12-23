@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  generateName: webhook-triggered-ml-validate
+spec:
+  entrypoint: ml-pipeline
+  templates:
+  - name: ml-pipeline
+    dag:
+      tasks:
+      - name: validate-model
+        template: validate-model-step
+ 
+  - name: validate-model-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/ml-validate:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/validate_model.py"]
+      args: []

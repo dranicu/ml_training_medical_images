@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  generateName: webhook-triggered-ml-processing
+spec:
+  entrypoint: ml-pipeline
+  templates:
+  - name: ml-pipeline
+    dag:
+      tasks:
+      - name: process-image
+        template: process-image-step
+
+  - name: process-image-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/ml-processing:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/processing.py"]
+      args: []

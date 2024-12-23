@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  generateName: webhook-triggered-ml-train
+spec:
+  entrypoint: ml-pipeline
+  templates:
+  - name: ml-pipeline
+    dag:
+      tasks:
+      - name: train-model
+        template: train-model-step
+
+  - name: train-model-step
+    container:
+      image: fra.ocir.io/<NAMESPACE>/ml-train:latest # NEEDS TO BE CHANGED TO THE CORRECT OCIR REGION AND NAMESPACE
+      command: ["python3.10", "/app/train_model.py"]
+      args: []

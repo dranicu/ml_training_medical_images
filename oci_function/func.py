@@ -18,18 +18,26 @@ def handler(ctx, data: BytesIO = None):
                 "Authorization": f"Bearer {ARGO_TOKEN}",
                 "Content-Type": "application/json"
             }
-        json_data = {
-            'namespace': 'argo-workflows',
+        workflows = [{'namespace': 'argo-workflows',
             'resourceKind': 'WorkflowTemplate',
-            'resourceName': 'webhook-triggered-ml',
-            }
+            'resourceName': 'webhook-triggered-ml-processing',
+            },
+            {'namespace': 'argo-workflows',
+            'resourceKind': 'WorkflowTemplate',
+            'resourceName': 'webhook-triggered-ml-train',
+            },
+            {'namespace': 'argo-workflows',
+            'resourceKind': 'WorkflowTemplate',
+            'resourceName': 'webhook-triggered-ml-validate',
+            }]
         # Trigger Argo workflow using a POST request to Argo's workflow submit endpoint
-        response = requests.post(
-            ARGO_SERVER_URL,
-            headers=headers,
-            json=json_data,
-            verify=False
-        )
+        for workflow in workflows:
+            response = requests.post(
+                ARGO_SERVER_URL,
+                headers=headers,
+                json=workflow,
+                verify=False
+            )
 
         if response.status_code == 200:
             print("Successfully triggered Argo workflow.")

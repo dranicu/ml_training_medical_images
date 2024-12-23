@@ -15,7 +15,7 @@ MODEL_SAVE_PATH = "./model/model.keras"
 DATA_DIR = "./data"
 TRAIN_DIR = os.path.join(DATA_DIR, "train")
 VALIDATION_DIR = os.path.join(DATA_DIR, "validation")
-BUCKET_NAME = "medical_images_processed"
+BUCKET_NAME = "medical-images-processed"
 BUCKET_NAME_MODEL = "trained-model"
 
 # Functions
