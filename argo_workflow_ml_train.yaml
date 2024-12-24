@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  generateName: webhook-triggered-ml-train
+  name: webhook-triggered-ml-train
 spec:
   entrypoint: ml-pipeline
   templates:

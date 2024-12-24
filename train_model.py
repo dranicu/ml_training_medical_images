@@ -71,7 +71,9 @@ def augment_and_distribute(input_dir, output_dir):
         
         if i < mid:
             output_path = os.path.join(train_class_dirs[i % 2], f"aug_{file_name}")
+            output_path = os.path.join(val_class_dirs[i % 2], f"aug_{file_name}")
         else:
+            output_path = os.path.join(train_class_dirs[i % 2], f"aug_{file_name}")
             output_path = os.path.join(val_class_dirs[i % 2], f"aug_{file_name}")
 
         output_image.save(output_path)

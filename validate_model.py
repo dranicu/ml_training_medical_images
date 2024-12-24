@@ -78,7 +78,7 @@ def validate_model(data_dir, model_path):
 
 if __name__ == "__main__":
     prefix = "validation"
-    bucket_name_images = "medical-images"
+    bucket_name_images = "medical-images-processed"
     bucket_name_model = "trained-model"
 
     download_dir = DATA_DIR
