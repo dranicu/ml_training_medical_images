@@ -23,8 +23,8 @@ def handler(ctx, data: BytesIO = None):
             'resourceName': 'webhook-triggered-ml-train',
             }
         # Trigger Argo workflow using a POST request to Argo's workflow submit endpoint
-        for workflow in workflows:
-            response = requests.post(
+        
+        response = requests.post(
                 ARGO_SERVER_URL,
                 headers=headers,
                 json=json_data,
