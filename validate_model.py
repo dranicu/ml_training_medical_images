@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # Parameters
-namespace = "ocisateam" # SET THE NAMESPACE
+namespace = "<NAMESPACE>" # SET THE NAMESPACE
 IMG_HEIGHT = 150  # Same as used during training
 IMG_WIDTH = 150   # Same as used during training
 BATCH_SIZE = 1
