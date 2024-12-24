@@ -9,8 +9,9 @@ from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Dropou
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 # Constants
-NAMESPACE = "ocisateam"  # Set your namespace
-BUCKET_RAW = "medical-images"
+NAMESPACE = "<NAMESPACE>"  # Set your namespace
+BUCKET_RAW = "medical-images-raw"
+BUCKET_PROCESSED = "medical-images-processed"
 BUCKET_MODEL = "trained-model"
 IMG_HEIGHT = 150
 IMG_WIDTH = 150
@@ -49,6 +50,9 @@ def download_images(namespace, bucket_name, download_dir):
 
 # Function to augment and distribute images
 def augment_and_distribute(input_dir, output_dir):
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    object_client = oci.object_storage.ObjectStorageClient(config={}, signer=signer)
+
     os.makedirs(output_dir, exist_ok=True)
     train_class_dirs = [os.path.join(TRAIN_DIR, "class1"), os.path.join(TRAIN_DIR, "class2")]
     val_class_dirs = [os.path.join(VALIDATION_DIR, "class1"), os.path.join(VALIDATION_DIR, "class2")]
@@ -71,6 +75,10 @@ def augment_and_distribute(input_dir, output_dir):
             output_path = os.path.join(val_class_dirs[i % 2], f"aug_{file_name}")
 
         output_image.save(output_path)
+
+        # Upload to OCI Object Storage
+        with open(output_path, 'rb') as image_file:
+            object_client.put_object(NAMESPACE, BUCKET_PROCESSED, output_path.replace(DATA_DIR + '/', ''), image_file)
 
 # Prepare data generators
 def prepare_data():

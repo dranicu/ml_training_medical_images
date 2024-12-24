@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # Parameters
-namespace = "<NAMESPACE>" # SET THE NAMESPACE
+namespace = "ocisateam" # SET THE NAMESPACE
 IMG_HEIGHT = 150  # Same as used during training
 IMG_WIDTH = 150   # Same as used during training
 BATCH_SIZE = 1
@@ -44,7 +44,8 @@ def download_images(namespace, prefix, bucket_name, download_dir):
             print(f"Downloaded: {file_path}")
         count += 1
 
-def download_model(download_dir, bucket_name, model_name):
+def download_model(download_dir, bucket_name):
+    model_name = "model.keras"
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
     object_client = oci.object_storage.ObjectStorageClient(config = {}, signer=signer )
 
@@ -52,7 +53,7 @@ def download_model(download_dir, bucket_name, model_name):
     get_obj_response = object_client.get_object(namespace, bucket_name, model_name)
     model_path = os.path.join(f"{download_dir}", model_name)
 
-    with open(download_dir, 'wb') as file:
+    with open(model_path, 'wb') as file:
         file.write(get_obj_response.data.content)
         print(f"Downloaded: {model_path}")
 
@@ -77,15 +78,16 @@ def validate_model(data_dir, model_path):
 
 if __name__ == "__main__":
     prefix = "validation"
-    bucket_name_images = "medical-images-processed"
+    bucket_name_images = "medical-images"
     bucket_name_model = "trained-model"
 
     download_dir = DATA_DIR
-    download_model(MODEL_PATH, bucket_name_model, "model.keras")
+    download_model(MODEL_PATH, bucket_name_model)
     download_images(namespace, prefix, bucket_name_images, download_dir)
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at {MODEL_PATH}")
     elif not os.path.exists(DATA_DIR):
         print(f"Error: Validation directory not found at {DATA_DIR}")
     else:
-        validate_model(DATA_DIR, MODEL_PATH)
+        model_path = os.path.join(f"{MODEL_PATH}", "model.keras")
+        validate_model(download_dir, model_path)
