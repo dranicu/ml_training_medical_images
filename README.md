@@ -1,6 +1,3 @@
-Thanks for the clarification! Here's an updated version of the README with step 4 adjusted to run the training inside a container.
-
-```markdown
 # ML Training for Medical Images
 
 This repository contains the code and configurations for training machine learning models on medical imaging datasets. It is designed to help you set up and execute training workflows using various machine learning models in medical image classification or other related tasks.
@@ -14,6 +11,7 @@ This repository contains the code and configurations for training machine learni
 - **validate_model.py**: Python script to validate the trained model.
 
 ## Setup
+
 
 1. Clone this repository:
 
